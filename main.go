@@ -25,7 +25,6 @@ var (
 func main() {
 	tempPath := unzipFiles()
 	bikeFiles := getFilesOfType(tempPath, "Radfahren")
-	//fmt.Println(bikeFiles)
 
 	distancesInM := make([]float64, 0)
 	for _, file := range bikeFiles {
@@ -41,6 +40,7 @@ func main() {
 	fmt.Println(message)
 
 	cleanUpTempDir()
+	fmt.Scanf("H")
 }
 
 func cleanUpTempDir() {
@@ -144,8 +144,6 @@ func getDistanceInM(filename string) (float64, error) {
 		}
 	}
 	max := maxFloat(distances)
-	fmt.Printf("Max value for '%s' is '%f'", filename, max)
-	fmt.Println("-------")
 	return max, err
 }
 
