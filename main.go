@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	StartingDate = time.Date(2019, time.April, 1, 0, 0, 0, 0, time.UTC)
+	StartingDate = time.Date(2023, time.April, 1, 0, 0, 0, 0, time.UTC)
 	EndDate      = time.Date(2023, time.October, 31, 0, 0, 0, 0, time.UTC)
 )
 
