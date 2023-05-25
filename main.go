@@ -18,29 +18,42 @@ const (
 )
 
 var (
-	StartingDate = time.Date(2023, time.April, 1, 0, 0, 0, 0, time.UTC)
-	EndDate      = time.Date(2023, time.October, 31, 0, 0, 0, 0, time.UTC)
+	StartingDate     = time.Date(2023, time.April, 1, 0, 0, 0, 0, time.UTC)
+	IntermediateDate = time.Date(2023, time.June, 2, 23, 59, 0, 0, time.UTC)
+	EndDate          = time.Date(2023, time.October, 31, 0, 0, 0, 0, time.UTC)
 )
 
 func main() {
 	tempPath := unzipFiles()
-	bikeFiles := getFilesOfType(tempPath, "Radfahren")
+	bikeFilesUntilIntermediate := getFilesOfType(tempPath, "Radfahren", IntermediateDate)
+	bikeFilesAll := getFilesOfType(tempPath, "Radfahren", EndDate)
 
-	distancesInM := make([]float64, 0)
-	for _, file := range bikeFiles {
-		distanceInM, err := getDistanceInM(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-		distancesInM = append(distancesInM, distanceInM)
-	}
+	totalDistanceUntilEndDate := getSumForFiles(bikeFilesAll)
+	totalDistanceUntilIntermediateDate := getSumForFiles(bikeFilesUntilIntermediate)
 
-	result := fmt.Sprintf("%.2f", sum(distancesInM))
-	message := fmt.Sprintf("Du bist insgesamt %sm mit dem Rad gefahren", result)
-	fmt.Println(message)
+	intermediateResult := fmt.Sprintf("%.2f", totalDistanceUntilIntermediateDate)
+	intermediateMessage := fmt.Sprintf("Zwischenstand zum 02.06.2023: %sm", intermediateResult)
+	fmt.Println(intermediateMessage)
+
+	totalResult := fmt.Sprintf("%.2f", totalDistanceUntilEndDate)
+	totalMessage := fmt.Sprintf("Gesamtergebnis: %sm", totalResult)
+	fmt.Println(totalMessage)
 
 	cleanUpTempDir()
 	fmt.Scanf("H")
+}
+
+func getSumForFiles(bikeFilesUntilIntermediate []string) float64 {
+	distances := make([]float64, 0)
+	for _, file := range bikeFilesUntilIntermediate {
+		distanceForFile, err := getDistanceInM(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		distances = append(distances, distanceForFile)
+	}
+	sum := sum(distances)
+	return sum
 }
 
 func cleanUpTempDir() {
@@ -85,13 +98,13 @@ func panicIfNotNull(err error) {
 	}
 }
 
-func getFilesOfType(tempPath string, fileType string) []string {
+func getFilesOfType(tempPath string, fileType string, endDate time.Time) []string {
 	files, err := os.ReadDir(tempPath)
 	logError(err)
 
 	var validFiles []string
 	for _, file := range files {
-		if strings.Contains(file.Name(), fileType) && hasValidDate(file.Name()) {
+		if strings.Contains(file.Name(), fileType) && hasValidDate(file.Name(), endDate) {
 			validFiles = append(validFiles, file.Name())
 		}
 	}
@@ -105,14 +118,14 @@ func logError(err error) {
 	}
 }
 
-func hasValidDate(filename string) bool {
+func hasValidDate(filename string, endDate time.Time) bool {
 	fileDateString := filename[0:10]
 	fileDate, err := time.Parse("2006-01-02", fileDateString)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return StartingDate.Unix() < fileDate.Unix() && fileDate.Unix() < EndDate.Unix()
+	return StartingDate.Unix() < fileDate.Unix() && fileDate.Unix() < endDate.Unix()
 }
 
 func getDistanceInM(filename string) (float64, error) {
